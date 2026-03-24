@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trinity Marketing Input Form</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="form-container">
+    <header class="form-header">
+      <h1>Marketing Input Form</h1>
+      <p class="subtitle">Commercial Real Estate Listing Submission</p>
+    </header>
+
+    <form id="marketingForm" novalidate>
+
+      <!-- Section 1: Listing Type -->
+      <section class="form-section">
+        <h2 class="section-title">Listing Type <span class="required-indicator">*</span></h2>
+        <div class="checkbox-group listing-type-group">
+          <label class="checkbox-label">
+            <input type="checkbox" name="listingType" value="For Sale" id="forSaleCheck">
+            <span class="checkmark"></span>
+            For Sale
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="listingType" value="For Lease" id="forLeaseCheck">
+            <span class="checkmark"></span>
+            For Lease
+          </label>
+        </div>
+        <p class="validation-msg" id="listingTypeError">Please select at least one listing type.</p>
+      </section>
+
+      <!-- Section 2: Basic Info -->
+      <section class="form-section">
+        <h2 class="section-title">Basic Information</h2>
+
+        <div class="form-group">
+          <label class="form-label">Broker Names <span class="required-indicator">*</span></label>
+          <p class="field-hint">Primary broker is required. Click "Add Broker" for additional brokers.</p>
+          <div id="brokerContainer">
+            <div class="broker-row">
+              <input type="text" class="form-input broker-input" name="brokerPrimary" placeholder="Primary Broker Name" required>
+              <span class="broker-badge primary-badge">Primary</span>
+            </div>
+          </div>
+          <button type="button" class="btn-add" id="addBrokerBtn">+ Add Broker</button>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label class="form-label" for="streetAddress">Street Address <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="streetAddress" name="streetAddress" required>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="zipCode">Zip Code <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="zipCode" name="zipCode" required maxlength="10">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="city">City <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="city" name="city" required>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="state">State <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="state" name="state" required>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="county">County <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="county" name="county" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="submarket">Submarket</label>
+          <input type="text" class="form-input" id="submarket" name="submarket">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="locationDescription">Location Description <span class="required-indicator">*</span></label>
+          <textarea class="form-input form-textarea" id="locationDescription" name="locationDescription" rows="3" required placeholder="Describe the property location, nearby landmarks, access points, etc."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="propertyHighlights">Property Highlights <span class="required-indicator">*</span></label>
+          <textarea class="form-input form-textarea" id="propertyHighlights" name="propertyHighlights" rows="3" required placeholder="Key selling points and features of the property."></textarea>
+        </div>
+      </section>
+
+      <!-- Section 3: Property Info -->
+      <section class="form-section">
+        <h2 class="section-title">Property Information</h2>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="propertyType">Property Type <span class="required-indicator">*</span></label>
+            <select class="form-input form-select" id="propertyType" name="propertyType" required>
+              <option value="">Select Property Type</option>
+              <option value="Office">Office</option>
+              <option value="Industrial">Industrial</option>
+              <option value="Retail">Retail</option>
+              <option value="Land">Land</option>
+              <option value="Multifamily">Multifamily</option>
+            </select>
+          </div>
+          <div class="form-group flex-1" id="propertySubtypeGroup" style="display:none;">
+            <label class="form-label" for="propertySubtype">Subtype <span class="required-indicator">*</span></label>
+            <select class="form-input form-select" id="propertySubtype" name="propertySubtype">
+              <option value="">Select Subtype</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="otherSubtypeGroup" style="display:none;">
+          <label class="form-label" for="otherSubtype">Specify Subtype <span class="required-indicator">*</span></label>
+          <input type="text" class="form-input" id="otherSubtype" name="otherSubtype" placeholder="Enter property subtype">
+        </div>
+
+        <div class="form-group" id="landUseGroup" style="display:none;">
+          <label class="form-label" for="landUse">Land Use <span class="required-indicator">*</span></label>
+          <input type="text" class="form-input" id="landUse" name="landUse" placeholder="Specify intended land use">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="propertyName">Property Name</label>
+          <input type="text" class="form-input" id="propertyName" name="propertyName">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="zoning">Zoning <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="zoning" name="zoning" required>
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="zoningJurisdiction">Zoning Jurisdiction <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="zoningJurisdiction" name="zoningJurisdiction" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="lotSize">Lot Size (AC) <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="lotSize" name="lotSize" required placeholder="e.g. 2.5">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="tmsNumber">TMS# <span id="tmsRequiredIndicator" class="required-indicator" style="display:none;">*</span></label>
+            <input type="text" class="form-input" id="tmsNumber" name="tmsNumber">
+            <p class="field-hint">Required for Land properties.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Building Info (hidden for Land) -->
+      <section class="form-section" id="buildingInfoSection">
+        <h2 class="section-title">Building Information <span class="required-indicator">*</span></h2>
+        <p class="field-hint section-hint">Not required if property type is Land.</p>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="buildingSize">Building Size (SF) <span class="required-indicator">*</span></label>
+            <input type="text" class="form-input" id="buildingSize" name="buildingSize" placeholder="e.g. 25,000">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="buildingClass">Building Class</label>
+            <select class="form-input form-select" id="buildingClass" name="buildingClass">
+              <option value="">Select Class</option>
+              <option value="A">Class A</option>
+              <option value="B">Class B</option>
+              <option value="C">Class C</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="occupancyRate">Occupancy Rate</label>
+            <input type="text" class="form-input" id="occupancyRate" name="occupancyRate" placeholder="e.g. 95%">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="tenancy">Tenancy</label>
+            <select class="form-input form-select" id="tenancy" name="tenancy">
+              <option value="">Select Tenancy</option>
+              <option value="Single Tenant">Single Tenant</option>
+              <option value="Multi-Tenant">Multi-Tenant</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="numberOfFloors">Number of Floors</label>
+            <input type="text" class="form-input" id="numberOfFloors" name="numberOfFloors">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="yearBuilt">Year Built</label>
+            <input type="text" class="form-input" id="yearBuilt" name="yearBuilt" maxlength="4" placeholder="e.g. 2005">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="yearRenovated">Year Last Renovated</label>
+            <input type="text" class="form-input" id="yearRenovated" name="yearRenovated" maxlength="4" placeholder="e.g. 2020">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="frontage">Frontage (ft)</label>
+            <input type="text" class="form-input" id="frontage" name="frontage">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="frontageStreet">Frontage Street</label>
+            <input type="text" class="form-input" id="frontageStreet" name="frontageStreet">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="vehiclesPerDay">Vehicles per Day</label>
+            <input type="text" class="form-input" id="vehiclesPerDay" name="vehiclesPerDay">
+          </div>
+        </div>
+
+        <!-- Office-Specific Fields -->
+        <div class="asset-class-fields" id="officeFields" style="display:none;">
+          <h3 class="subsection-title">Office Details</h3>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="numOffices"># of Offices</label>
+              <input type="text" class="form-input" id="numOffices" name="numOffices">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="numBathrooms"># of Bathrooms</label>
+              <input type="text" class="form-input" id="numBathrooms" name="numBathrooms">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="numBreakrooms"># of Breakrooms</label>
+              <input type="text" class="form-input" id="numBreakrooms" name="numBreakrooms">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Shared Entry</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="sharedEntry" value="Yes"> Yes</label>
+                <label class="radio-label"><input type="radio" name="sharedEntry" value="No"> No</label>
+              </div>
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Shared Amenities</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="sharedAmenities" value="Yes"> Yes</label>
+                <label class="radio-label"><input type="radio" name="sharedAmenities" value="No"> No</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="numWorkstations"># of Work Stations</label>
+              <input type="text" class="form-input" id="numWorkstations" name="numWorkstations">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="parkingRatio">Parking Ratio</label>
+              <input type="text" class="form-input" id="parkingRatio" name="parkingRatio" placeholder="e.g. 4:1,000 SF">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="layoutStyle">Layout Style</label>
+            <select class="form-input form-select" id="layoutStyle" name="layoutStyle">
+              <option value="">Select Layout</option>
+              <option value="Open">Open</option>
+              <option value="Cubicle">Cubicle</option>
+              <option value="Individual Offices">Individual Offices</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" id="otherLayoutGroup" style="display:none;">
+            <label class="form-label" for="otherLayout">Specify Layout Style</label>
+            <input type="text" class="form-input" id="otherLayout" name="otherLayout">
+          </div>
+        </div>
+
+        <!-- Industrial-Specific Fields -->
+        <div class="asset-class-fields" id="industrialFields" style="display:none;">
+          <h3 class="subsection-title">Industrial Details</h3>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="officeSpace">Office Space (SF)</label>
+              <input type="text" class="form-input" id="officeSpace" name="officeSpace">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="utilities">Utilities</label>
+              <input type="text" class="form-input" id="utilities" name="utilities" placeholder="Describe available utilities">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="numDockDoors"># of Dock Doors</label>
+              <input type="text" class="form-input" id="numDockDoors" name="numDockDoors">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="dockDoorDescription">Dock Door Description</label>
+              <input type="text" class="form-input" id="dockDoorDescription" name="dockDoorDescription">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="numDriveInDoors"># of Drive-In Doors</label>
+              <input type="text" class="form-input" id="numDriveInDoors" name="numDriveInDoors">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="minClearHeight">Min. Clear Height</label>
+              <input type="text" class="form-input" id="minClearHeight" name="minClearHeight" placeholder="e.g. 24'">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="maxClearHeight">Max. Clear Height</label>
+              <input type="text" class="form-input" id="maxClearHeight" name="maxClearHeight" placeholder="e.g. 32'">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="floorThickness">Floor Thickness</label>
+              <input type="text" class="form-input" id="floorThickness" name="floorThickness" placeholder="e.g. 6 inches">
+            </div>
+          </div>
+        </div>
+
+        <!-- Retail-Specific Fields -->
+        <div class="asset-class-fields" id="retailFields" style="display:none;">
+          <h3 class="subsection-title">Retail Details</h3>
+          <div class="form-group">
+            <label class="form-label" for="currentUse">Current Use</label>
+            <input type="text" class="form-input" id="currentUse" name="currentUse" placeholder="Describe current use">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="potentialUses">Potential Uses</label>
+            <input type="text" class="form-input" id="potentialUses" name="potentialUses" placeholder="Describe potential uses">
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label" for="numParkingSpaces"># of Parking Spaces</label>
+              <input type="text" class="form-input" id="numParkingSpaces" name="numParkingSpaces">
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label" for="spaceCondition">Space Condition</label>
+              <input type="text" class="form-input" id="spaceCondition" name="spaceCondition">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: Sale Info (conditional) -->
+      <section class="form-section" id="saleSection" style="display:none;">
+        <h2 class="section-title">Sale Information</h2>
+
+        <div class="form-group">
+          <label class="form-label" for="saleDescription">Sale Description <span class="required-indicator">*</span></label>
+          <textarea class="form-input form-textarea" id="saleDescription" name="saleDescription" rows="3" placeholder="Describe the sale opportunity."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="salePrice">Price (USD) <span class="required-indicator">*</span></label>
+          <div class="input-with-toggle">
+            <input type="text" class="form-input" id="salePrice" name="salePrice" placeholder="e.g. $1,500,000">
+            <label class="checkbox-label contact-broker-label">
+              <input type="checkbox" id="salePriceContactBroker">
+              <span class="checkmark"></span>
+              Contact Broker for Pricing
+            </label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label class="form-label" for="noi">NOI</label>
+            <input type="text" class="form-input" id="noi" name="noi" placeholder="e.g. $150,000">
+          </div>
+          <div class="form-group flex-1">
+            <label class="form-label" for="capRate">Cap Rate</label>
+            <input type="text" class="form-input" id="capRate" name="capRate" placeholder="e.g. 6.5%">
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Lease Info (conditional) -->
+      <section class="form-section" id="leaseSection" style="display:none;">
+        <h2 class="section-title">Lease Information</h2>
+
+        <label class="checkbox-label sublease-label">
+          <input type="checkbox" id="subleaseCheck" name="sublease" value="Yes">
+          <span class="checkmark"></span>
+          This is a Sublease
+        </label>
+
+        <div class="form-group">
+          <label class="form-label" for="leaseDescription">Lease Description <span class="required-indicator">*</span></label>
+          <textarea class="form-input form-textarea" id="leaseDescription" name="leaseDescription" rows="3" placeholder="Describe the lease opportunity."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="leaseRate">Lease Rate (USD) <span class="required-indicator">*</span></label>
+          <div class="input-with-toggle">
+            <input type="text" class="form-input" id="leaseRate" name="leaseRate" placeholder="e.g. $18.00">
+            <label class="checkbox-label contact-broker-label">
+              <input type="checkbox" id="leaseRateContactBroker">
+              <span class="checkmark"></span>
+              Contact Broker for Pricing
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rate Basis</label>
+          <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="rateBasis" value="$/SF/Year"> $/SF/Year</label>
+            <label class="radio-label"><input type="radio" name="rateBasis" value="Monthly"> Monthly</label>
+            <label class="radio-label"><input type="radio" name="rateBasis" value="Annual Rent"> Annual Rent</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="leaseType">Lease Type <span class="required-indicator">*</span></label>
+          <select class="form-input form-select" id="leaseType" name="leaseType">
+            <option value="">Select Lease Type</option>
+            <option value="NNN">NNN</option>
+            <option value="Modified Gross">Modified Gross</option>
+            <option value="Gross">Gross</option>
+            <option value="Modified Net">Modified Net</option>
+            <option value="Full Service">Full Service</option>
+            <option value="Ground Lease">Ground Lease</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group" id="otherLeaseTypeGroup" style="display:none;">
+          <label class="form-label" for="otherLeaseType">Specify Lease Type <span class="required-indicator">*</span></label>
+          <input type="text" class="form-input" id="otherLeaseType" name="otherLeaseType">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="numSpacesAvailable"># of Spaces Available <span class="required-indicator">*</span></label>
+          <input type="text" class="form-input" id="numSpacesAvailable" name="numSpacesAvailable">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Suite Information <span class="required-indicator">*</span></label>
+          <p class="field-hint">Add each available suite/space below.</p>
+          <div id="suiteContainer">
+            <div class="suite-card">
+              <div class="suite-header">
+                <h4>Suite 1</h4>
+              </div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label">Suite Name <span class="required-indicator">*</span></label>
+                  <input type="text" class="form-input" name="suiteName_0" placeholder="e.g. Suite 100">
+                </div>
+                <div class="form-group flex-1">
+                  <label class="form-label">Size (SF) <span class="required-indicator">*</span></label>
+                  <input type="text" class="form-input" name="suiteSize_0" placeholder="e.g. 2,500">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label">Floor</label>
+                  <input type="text" class="form-input" name="suiteFloor_0">
+                </div>
+                <div class="form-group flex-1">
+                  <label class="form-label">Rate <span class="required-indicator">*</span></label>
+                  <input type="text" class="form-input" name="suiteRate_0" placeholder="e.g. $18.00/SF">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label">Lease Type <span class="required-indicator">*</span></label>
+                  <select class="form-input form-select" name="suiteLeaseType_0">
+                    <option value="">Select Lease Type</option>
+                    <option value="NNN">NNN</option>
+                    <option value="Modified Gross">Modified Gross</option>
+                    <option value="Gross">Gross</option>
+                    <option value="Modified Net">Modified Net</option>
+                    <option value="Full Service">Full Service</option>
+                    <option value="Ground Lease">Ground Lease</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group flex-1">
+                  <label class="form-label">Minimum Divisible</label>
+                  <input type="text" class="form-input" name="suiteMinDivisible_0" placeholder="SF">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label">Maximum Contiguous</label>
+                  <input type="text" class="form-input" name="suiteMaxContiguous_0" placeholder="SF">
+                </div>
+                <div class="form-group flex-1"></div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-add" id="addSuiteBtn">+ Add Suite</button>
+        </div>
+      </section>
+
+      <!-- Section 7: E-Blast -->
+      <section class="form-section">
+        <h2 class="section-title">E-Blast</h2>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="eblast" value="Yes"> Yes</label>
+          <label class="radio-label"><input type="radio" name="eblast" value="No"> No</label>
+        </div>
+      </section>
+
+      <!-- Submit -->
+      <div class="form-actions">
+        <button type="submit" class="btn-submit" id="submitBtn">Submit to Marketing</button>
+      </div>
+
+    </form>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal" style="display:none;">
+      <div class="modal-content">
+        <div class="modal-icon">&#10003;</div>
+        <h3>Form Submitted Successfully</h3>
+        <p>Your marketing request has been sent. The marketing team will review your submission shortly.</p>
+        <button class="btn-submit" onclick="document.getElementById('successModal').style.display='none';">Close</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
