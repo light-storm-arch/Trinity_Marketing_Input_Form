@@ -1,6 +1,6 @@
 // ===== Configuration =====
 // TODO: Replace with the actual marketing email address
-const MARKETING_EMAIL = 'marketing@example.com';
+const MARKETING_EMAIL = 'astrom@trinity-partners.com';
 
 // ===== Property Subtype Options =====
 const subtypeOptions = {
