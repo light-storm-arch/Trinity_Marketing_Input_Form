@@ -1,6 +1,7 @@
 // ===== Configuration =====
-// TODO: Replace with the actual marketing email address
-const MARKETING_EMAIL = 'marketing@example.com';
+// This value is injected at deploy time from the MARKETING_EMAIL repository secret.
+// To set it: GitHub repo → Settings → Secrets → Actions → New secret named MARKETING_EMAIL
+const MARKETING_EMAIL = '__MARKETING_EMAIL__';
 
 // ===== Property Subtype Options =====
 const subtypeOptions = {
