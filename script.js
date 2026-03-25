@@ -678,6 +678,34 @@ form.addEventListener('submit', (e) => {
     });
 });
 
+// ===== Google Places Autocomplete =====
+function initAutocomplete() {
+  const addressInput = document.getElementById('streetAddress');
+  if (!addressInput || typeof google === 'undefined') return;
+  const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+    types: ['address'],
+    componentRestrictions: { country: 'us' },
+  });
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.address_components) return;
+    const get = (type) => {
+      const c = place.address_components.find(c => c.types.includes(type));
+      return c ? c.long_name : '';
+    };
+    const getShort = (type) => {
+      const c = place.address_components.find(c => c.types.includes(type));
+      return c ? c.short_name : '';
+    };
+    document.getElementById('city').value = get('locality') || get('sublocality_level_1') || '';
+    document.getElementById('state').value = getShort('administrative_area_level_1') || '';
+    document.getElementById('county').value = get('administrative_area_level_2') || '';
+    document.getElementById('zipCode').value = get('postal_code') || '';
+  });
+}
+// Make available as global callback for Google Maps script
+window.initAutocomplete = initAutocomplete;
+
 // ===== Clear Error on Input =====
 document.addEventListener('input', (e) => {
   if (e.target.classList.contains('error')) {
