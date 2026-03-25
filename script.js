@@ -415,30 +415,47 @@ function validateForm() {
   return valid;
 }
 
-// ===== Build Email Body =====
+// ===== Build Email Body (HTML) =====
 function buildEmailBody() {
-  const lines = [];
-  const sep = '─'.repeat(40);
   const val = (id) => document.getElementById(id)?.value?.trim() || '';
   const radio = (name) => {
     const checked = document.querySelector(`input[name="${name}"]:checked`);
     return checked ? checked.value : '';
   };
+  const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // Listing Type
+  // Style constants
+  const fontFamily = "font-family: Arial, Helvetica, sans-serif;";
+  const sectionHeader = `style="${fontFamily} font-size:16px; font-weight:700; color:#1e3a5f; margin:0; padding:10px 0 6px 0; border-bottom:2px solid #2563eb; text-transform:uppercase; letter-spacing:0.5px;"`;
+  const fieldLabel = `style="${fontFamily} color:#64748b; font-size:13px; margin:0; padding:2px 0 0 0;"`;
+  const fieldValue = `style="${fontFamily} color:#1e293b; font-size:14px; margin:0 0 8px 0;"`;
+  const subHeader = `style="${fontFamily} font-size:14px; font-weight:600; color:#334155; margin:12px 0 4px 0;"`;
+
+  let html = `<div style="${fontFamily} max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">`;
+
+  // Header banner
   const types = [];
   if (forSaleCheck.checked) types.push('For Sale');
   if (forLeaseCheck.checked) types.push('For Lease');
-  lines.push('LISTING TYPE');
-  lines.push(sep);
-  lines.push(types.join(' | '));
-  lines.push('');
+  html += `<div style="background:linear-gradient(135deg,#1e3a5f,#2563eb); padding:24px 28px;">
+    <h1 style="${fontFamily} color:#ffffff; font-size:20px; margin:0;">Marketing Request</h1>
+    <p style="${fontFamily} color:#93c5fd; font-size:14px; margin:6px 0 0 0;">${esc(types.join(' & '))}</p>
+  </div>`;
 
-  // Basic Info
-  lines.push('BASIC INFORMATION');
-  lines.push(sep);
+  // Body padding
+  html += `<div style="padding:24px 28px;">`;
 
-  // Brokers
+  // --- Section helper ---
+  function section(title) {
+    html += `<h2 ${sectionHeader}>${esc(title)}</h2>`;
+  }
+  function field(label, value) {
+    if (!value) return;
+    html += `<p ${fieldLabel}>${esc(label)}</p><p ${fieldValue}>${esc(value)}</p>`;
+  }
+
+  // BASIC INFORMATION
+  section('Basic Information');
   const brokerRows = brokerContainer.querySelectorAll('.broker-row');
   brokerRows.forEach((row, i) => {
     const nameInput = row.querySelector('.broker-input');
@@ -446,154 +463,142 @@ function buildEmailBody() {
     const name = nameInput ? nameInput.value.trim() : '';
     const email = emailInput ? emailInput.value.trim() : '';
     if (name) {
-      lines.push(`Broker ${i + 1}: ${name}${i === 0 ? ' (Primary)' : ''} — ${email}`);
+      field(`Broker ${i + 1}${i === 0 ? ' (Primary)' : ''}`, `${name} — ${email}`);
     }
   });
+  field('Address', val('streetAddress'));
+  field('City / State / Zip', `${val('city')}, ${val('state')} ${val('zipCode')}`);
+  field('County', val('county'));
+  field('Submarket', val('submarket'));
+  field('Location Description', val('locationDescription'));
+  field('Property Highlights', val('propertyHighlights'));
 
-  lines.push(`Address: ${val('streetAddress')}`);
-  lines.push(`City: ${val('city')}, ${val('state')} ${val('zipCode')}`);
-  lines.push(`County: ${val('county')}`);
-  if (val('submarket')) lines.push(`Submarket: ${val('submarket')}`);
-  lines.push(`Location Description: ${val('locationDescription')}`);
-  lines.push(`Property Highlights: ${val('propertyHighlights')}`);
-  lines.push('');
-
-  // Property Info
-  lines.push('PROPERTY INFORMATION');
-  lines.push(sep);
+  // PROPERTY INFORMATION
+  section('Property Information');
   const type = val('propertyType');
-  lines.push(`Property Type: ${type}`);
+  field('Property Type', type);
   if (type === 'Land') {
-    lines.push(`Land Use: ${val('landUse')}`);
+    field('Land Use', val('landUse'));
   } else if (val('propertySubtype')) {
     const sub = val('propertySubtype') === 'Other' ? val('otherSubtype') : val('propertySubtype');
-    lines.push(`Subtype: ${sub}`);
+    field('Subtype', sub);
   }
-  if (val('propertyName')) lines.push(`Property Name: ${val('propertyName')}`);
-  lines.push(`Zoning: ${val('zoning')}`);
-  lines.push(`Zoning Jurisdiction: ${val('zoningJurisdiction')}`);
-  lines.push(`Lot Size: ${val('lotSize')} AC`);
-  if (val('tmsNumber')) lines.push(`TMS#: ${val('tmsNumber')}`);
-  lines.push('');
+  field('Property Name', val('propertyName'));
+  field('Zoning', val('zoning'));
+  field('Zoning Jurisdiction', val('zoningJurisdiction'));
+  field('Lot Size', val('lotSize') ? `${val('lotSize')} AC` : '');
+  field('TMS#', val('tmsNumber'));
 
-  // Building Info (if not land)
+  // BUILDING INFORMATION
   if (type !== 'Land') {
-    lines.push('BUILDING INFORMATION');
-    lines.push(sep);
-    lines.push(`Building Size: ${val('buildingSize')} SF`);
-    if (val('buildingClass')) lines.push(`Building Class: ${val('buildingClass')}`);
-    if (val('occupancyRate')) lines.push(`Occupancy Rate: ${val('occupancyRate')}`);
-    if (val('tenancy')) lines.push(`Tenancy: ${val('tenancy')}`);
-    if (val('numberOfFloors')) lines.push(`Number of Floors: ${val('numberOfFloors')}`);
-    if (val('yearBuilt')) lines.push(`Year Built: ${val('yearBuilt')}`);
-    if (val('yearRenovated')) lines.push(`Year Last Renovated: ${val('yearRenovated')}`);
-    if (val('frontage')) lines.push(`Frontage: ${val('frontage')} ft`);
-    if (val('frontageStreet')) lines.push(`Frontage Street: ${val('frontageStreet')}`);
-    if (val('vehiclesPerDay')) lines.push(`Vehicles per Day: ${val('vehiclesPerDay')}`);
+    section('Building Information');
+    field('Building Size', val('buildingSize') ? `${val('buildingSize')} SF` : '');
+    field('Building Class', val('buildingClass'));
+    field('Occupancy Rate', val('occupancyRate'));
+    field('Tenancy', val('tenancy'));
+    field('Number of Floors', val('numberOfFloors'));
+    field('Year Built', val('yearBuilt'));
+    field('Year Last Renovated', val('yearRenovated'));
+    field('Frontage', val('frontage') ? `${val('frontage')} ft` : '');
+    field('Frontage Street', val('frontageStreet'));
+    field('Vehicles per Day', val('vehiclesPerDay'));
 
     // Asset-class specific
     if (type === 'Office') {
-      lines.push('');
-      lines.push('  Office Details:');
-      if (val('numOffices')) lines.push(`  # of Offices: ${val('numOffices')}`);
-      if (val('numBathrooms')) lines.push(`  # of Bathrooms: ${val('numBathrooms')}`);
-      if (val('numBreakrooms')) lines.push(`  # of Breakrooms: ${val('numBreakrooms')}`);
-      if (radio('sharedEntry')) lines.push(`  Shared Entry: ${radio('sharedEntry')}`);
-      if (radio('sharedAmenities')) lines.push(`  Shared Amenities: ${radio('sharedAmenities')}`);
-      if (val('numWorkstations')) lines.push(`  # of Work Stations: ${val('numWorkstations')}`);
-      if (val('parkingRatio')) lines.push(`  Parking Ratio: ${val('parkingRatio')}`);
+      html += `<p ${subHeader}>Office Details</p>`;
+      field('# of Offices', val('numOffices'));
+      field('# of Bathrooms', val('numBathrooms'));
+      field('# of Breakrooms', val('numBreakrooms'));
+      field('Shared Entry', radio('sharedEntry'));
+      field('Shared Amenities', radio('sharedAmenities'));
+      field('# of Work Stations', val('numWorkstations'));
+      field('Parking Ratio', val('parkingRatio'));
       const layout = val('layoutStyle') === 'Other' ? val('otherLayout') : val('layoutStyle');
-      if (layout) lines.push(`  Layout Style: ${layout}`);
+      field('Layout Style', layout);
     }
 
     if (type === 'Industrial') {
-      lines.push('');
-      lines.push('  Industrial Details:');
-      if (val('officeSpace')) lines.push(`  Office Space: ${val('officeSpace')} SF`);
-      if (val('utilities')) lines.push(`  Utilities: ${val('utilities')}`);
-      if (val('numDockDoors')) lines.push(`  # of Dock Doors: ${val('numDockDoors')}`);
-      if (val('dockDoorDescription')) lines.push(`  Dock Door Description: ${val('dockDoorDescription')}`);
-      if (val('numDriveInDoors')) lines.push(`  # of Drive-In Doors: ${val('numDriveInDoors')}`);
-      if (val('minClearHeight')) lines.push(`  Min. Clear Height: ${val('minClearHeight')}`);
-      if (val('maxClearHeight')) lines.push(`  Max. Clear Height: ${val('maxClearHeight')}`);
-      if (val('floorThickness')) lines.push(`  Floor Thickness: ${val('floorThickness')}`);
+      html += `<p ${subHeader}>Industrial Details</p>`;
+      field('Office Space', val('officeSpace') ? `${val('officeSpace')} SF` : '');
+      field('Utilities', val('utilities'));
+      field('# of Dock Doors', val('numDockDoors'));
+      field('Dock Door Description', val('dockDoorDescription'));
+      field('# of Drive-In Doors', val('numDriveInDoors'));
+      field('Min. Clear Height', val('minClearHeight'));
+      field('Max. Clear Height', val('maxClearHeight'));
+      field('Floor Thickness', val('floorThickness'));
     }
 
     if (type === 'Retail') {
-      lines.push('');
-      lines.push('  Retail Details:');
-      if (val('currentUse')) lines.push(`  Current Use: ${val('currentUse')}`);
-      if (val('potentialUses')) lines.push(`  Potential Uses: ${val('potentialUses')}`);
-      if (val('numParkingSpaces')) lines.push(`  # of Parking Spaces: ${val('numParkingSpaces')}`);
-      if (val('spaceCondition')) lines.push(`  Space Condition: ${val('spaceCondition')}`);
+      html += `<p ${subHeader}>Retail Details</p>`;
+      field('Current Use', val('currentUse'));
+      field('Potential Uses', val('potentialUses'));
+      field('# of Parking Spaces', val('numParkingSpaces'));
+      field('Space Condition', val('spaceCondition'));
     }
-
-    lines.push('');
   }
 
-  // Sale Info
+  // SALE INFORMATION
   if (forSaleCheck.checked) {
-    lines.push('SALE INFORMATION');
-    lines.push(sep);
-    lines.push(`Sale Description: ${val('saleDescription')}`);
-    lines.push(`Price: ${val('salePrice')}`);
-    if (val('noi')) lines.push(`NOI: ${val('noi')}`);
-    if (val('capRate')) lines.push(`Cap Rate: ${val('capRate')}`);
-    lines.push('');
+    section('Sale Information');
+    field('Sale Description', val('saleDescription'));
+    field('Price', val('salePrice'));
+    field('NOI', val('noi'));
+    field('Cap Rate', val('capRate'));
   }
 
-  // Lease Info
+  // LEASE INFORMATION
   if (forLeaseCheck.checked) {
-    lines.push('LEASE INFORMATION');
-    lines.push(sep);
+    section('Lease Information');
     if (document.getElementById('subleaseCheck').checked) {
-      lines.push('** SUBLEASE **');
+      html += `<p style="${fontFamily} color:#dc2626; font-weight:700; font-size:14px; margin:8px 0;">⚑ SUBLEASE</p>`;
     }
-    lines.push(`Lease Description: ${val('leaseDescription')}`);
-    lines.push(`Lease Rate: ${val('leaseRate')}`);
-    if (radio('rateBasis')) lines.push(`Rate Basis: ${radio('rateBasis')}`);
+    field('Lease Description', val('leaseDescription'));
+    field('Lease Rate', val('leaseRate'));
+    field('Rate Basis', radio('rateBasis'));
     const lt = val('leaseType') === 'Other' ? val('otherLeaseType') : val('leaseType');
-    lines.push(`Lease Type: ${lt}`);
-    lines.push(`# of Spaces Available: ${val('numSpacesAvailable')}`);
+    field('Lease Type', lt);
+    field('# of Spaces Available', val('numSpacesAvailable'));
 
     // Suites
     const suiteCards = suiteContainer.querySelectorAll('.suite-card');
     if (suiteCards.length > 0) {
-      lines.push('');
-      lines.push('  Available Suites:');
+      html += `<p ${subHeader}>Available Suites</p>`;
       suiteCards.forEach((card, i) => {
         const getName = (prefix) => {
           const input = card.querySelector(`[name^="${prefix}"]`);
           return input ? input.value.trim() : '';
         };
-        lines.push(`  --- Suite ${i + 1} ---`);
-        lines.push(`  Name: ${getName('suiteName')}`);
-        lines.push(`  Size: ${getName('suiteSize')} SF`);
-        if (getName('suiteFloor')) lines.push(`  Floor: ${getName('suiteFloor')}`);
-        lines.push(`  Rate: ${getName('suiteRate')}`);
-        lines.push(`  Lease Type: ${getName('suiteLeaseType')}`);
-        if (getName('suiteMinDivisible')) lines.push(`  Min. Divisible: ${getName('suiteMinDivisible')} SF`);
-        if (getName('suiteMaxContiguous')) lines.push(`  Max. Contiguous: ${getName('suiteMaxContiguous')} SF`);
+        html += `<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:12px 16px; margin:8px 0;">`;
+        html += `<p style="${fontFamily} font-weight:600; color:#1e3a5f; font-size:14px; margin:0 0 6px 0;">Suite ${i + 1}</p>`;
+        field('Name', getName('suiteName'));
+        field('Size', getName('suiteSize') ? `${getName('suiteSize')} SF` : '');
+        field('Floor', getName('suiteFloor'));
+        field('Rate', getName('suiteRate'));
+        field('Lease Type', getName('suiteLeaseType'));
+        field('Min. Divisible', getName('suiteMinDivisible') ? `${getName('suiteMinDivisible')} SF` : '');
+        field('Max. Contiguous', getName('suiteMaxContiguous') ? `${getName('suiteMaxContiguous')} SF` : '');
+        html += `</div>`;
       });
     }
-    lines.push('');
   }
 
-  // E-Blast
+  // E-BLAST
   const eblast = radio('eblast');
   if (eblast) {
-    lines.push('E-BLAST');
-    lines.push(sep);
-    lines.push(eblast);
-    lines.push('');
+    section('E-Blast');
+    html += `<p ${fieldValue}>${esc(eblast)}</p>`;
   }
 
-  // Priority
-  lines.push('PRIORITY');
-  lines.push(sep);
-  lines.push(val('priority'));
+  // PRIORITY
+  section('Priority');
+  const priority = val('priority');
+  const priorityColor = priority === 'Rush' ? '#dc2626' : priority === 'High' ? '#ea580c' : '#16a34a';
+  html += `<p style="${fontFamily} display:inline-block; background:${priorityColor}; color:#fff; padding:4px 14px; border-radius:12px; font-size:13px; font-weight:600; margin:8px 0;">${esc(priority)}</p>`;
 
-  return lines.join('\n');
+  // Close body + wrapper
+  html += `</div></div>`;
+  return html;
 }
 
 // ===== Build Email Subject =====
@@ -623,11 +628,11 @@ form.addEventListener('submit', (e) => {
     if (input.value.trim()) ccEmails.push(input.value.trim());
   });
 
-  // Build FormSubmit payload
+  // Build FormSubmit payload (HTML email)
   const payload = {
     _subject: buildEmailSubject(),
     _cc: ccEmails.join(','),
-    _template: 'box',
+    _template: 'table',
     _captcha: 'false',
     message: buildEmailBody(),
   };
