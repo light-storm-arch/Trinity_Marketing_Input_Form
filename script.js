@@ -3,7 +3,7 @@
 // After your first submission, FormSubmit will send a confirmation email.
 // Once confirmed, you can replace the email below with the alias hash
 // they provide to keep the address hidden from the page source.
-const MARKETING_EMAIL = 'e298bb80442144a8f3a2542b6844c51e;
+const MARKETING_EMAIL = 'e298bb80442144a8f3a2542b6844c51e';
 
 // FormSubmit endpoint
 const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${MARKETING_EMAIL}`;
