@@ -1,6 +1,26 @@
 // ===== Configuration =====
-// TODO: Replace with the actual marketing email address
+// Marketing recipient email
 const MARKETING_EMAIL = 'astrom@trinity-partners.com';
+
+// EmailJS Configuration
+// To set up: https://www.emailjs.com
+// 1. Create a free account at emailjs.com
+// 2. Add an Email Service (e.g. Gmail, Outlook) → copy the Service ID
+// 3. Create an Email Template with these variables:
+//      {{subject}}        - email subject line
+//      {{to_email}}       - marketing email (auto-filled)
+//      {{cc_emails}}      - broker emails, comma-separated
+//      {{message}}        - the full formatted form content
+//    Set the "To Email" field in the template to: {{to_email}}
+//    Set the "CC" field in the template to: {{cc_emails}}
+// 4. Copy your Public Key from Account → API Keys
+// 5. Replace the three values below:
+const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+
+// Initialize EmailJS
+emailjs.init(EMAILJS_PUBLIC_KEY);
 
 // ===== Property Subtype Options =====
 const subtypeOptions = {
@@ -606,8 +626,9 @@ form.addEventListener('submit', (e) => {
 
   if (!validateForm()) return;
 
-  const subject = encodeURIComponent(buildEmailSubject());
-  const body = encodeURIComponent(buildEmailBody());
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
 
   // Collect broker emails for CC
   const brokerEmailInputs = brokerContainer.querySelectorAll('.broker-email');
@@ -615,40 +636,46 @@ form.addEventListener('submit', (e) => {
   brokerEmailInputs.forEach((input) => {
     if (input.value.trim()) ccEmails.push(input.value.trim());
   });
-  const ccParam = ccEmails.length > 0 ? `&cc=${encodeURIComponent(ccEmails.join(','))}` : '';
 
-  // Use mailto link to open the user's email client
-  const mailtoLink = `mailto:${MARKETING_EMAIL}?subject=${subject}${ccParam}&body=${body}`;
+  // Send via EmailJS
+  const templateParams = {
+    subject: buildEmailSubject(),
+    to_email: MARKETING_EMAIL,
+    cc_emails: ccEmails.join(','),
+    message: buildEmailBody(),
+  };
 
-  // Check if mailto body is too long (some email clients have limits around 2000 chars in URL)
-  // If so, copy to clipboard and show modal with instructions
-  if (mailtoLink.length > 2000) {
-    // Try to open mailto with just subject, copy body to clipboard
-    const shortMailto = `mailto:${MARKETING_EMAIL}?subject=${subject}${ccParam}`;
-
-    // Copy body to clipboard
-    const emailBody = buildEmailBody();
-    navigator.clipboard.writeText(emailBody).then(() => {
-      window.location.href = shortMailto;
-      showCopyModal();
-    }).catch(() => {
-      // Fallback: try the full mailto anyway
-      window.location.href = mailtoLink;
-      document.getElementById('successModal').style.display = 'flex';
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+    .then(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit to Marketing';
+      const modal = document.getElementById('successModal');
+      modal.querySelector('h3').textContent = 'Form Submitted Successfully';
+      modal.querySelector('p').textContent =
+        'Your marketing request has been sent. The marketing team and all listed brokers will receive a copy.';
+      modal.style.display = 'flex';
+      form.reset();
+      // Hide conditional sections after reset
+      saleSection.style.display = 'none';
+      leaseSection.style.display = 'none';
+      document.querySelectorAll('.asset-class-fields').forEach(el => el.style.display = 'none');
+      propertySubtypeGroup.style.display = 'none';
+      otherSubtypeGroup.style.display = 'none';
+      landUseGroup.style.display = 'none';
+    })
+    .catch((error) => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit to Marketing';
+      const modal = document.getElementById('successModal');
+      modal.querySelector('.modal-icon').textContent = '!';
+      modal.querySelector('.modal-icon').style.background = '#dc2626';
+      modal.querySelector('h3').textContent = 'Submission Failed';
+      modal.querySelector('p').textContent =
+        'There was an error sending your request. Please try again or contact the marketing team directly.';
+      modal.style.display = 'flex';
+      console.error('EmailJS error:', error);
     });
-  } else {
-    window.location.href = mailtoLink;
-    document.getElementById('successModal').style.display = 'flex';
-  }
 });
-
-function showCopyModal() {
-  const modal = document.getElementById('successModal');
-  modal.querySelector('h3').textContent = 'Email Client Opened';
-  modal.querySelector('p').textContent =
-    'The form content has been copied to your clipboard. Your email client should open shortly — please paste (Ctrl+V / Cmd+V) the content into the email body.';
-  modal.style.display = 'flex';
-}
 
 // ===== Clear Error on Input =====
 document.addEventListener('input', (e) => {
