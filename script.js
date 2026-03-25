@@ -1,26 +1,12 @@
 // ===== Configuration =====
-// Marketing recipient email
+// Marketing recipient email — FormSubmit delivers to this address.
+// After your first submission, FormSubmit will send a confirmation email.
+// Once confirmed, you can replace the email below with the alias hash
+// they provide to keep the address hidden from the page source.
 const MARKETING_EMAIL = 'astrom@trinity-partners.com';
 
-// EmailJS Configuration
-// To set up: https://www.emailjs.com
-// 1. Create a free account at emailjs.com
-// 2. Add an Email Service (e.g. Gmail, Outlook) → copy the Service ID
-// 3. Create an Email Template with these variables:
-//      {{subject}}        - email subject line
-//      {{to_email}}       - marketing email (auto-filled)
-//      {{cc_emails}}      - broker emails, comma-separated
-//      {{message}}        - the full formatted form content
-//    Set the "To Email" field in the template to: {{to_email}}
-//    Set the "CC" field in the template to: {{cc_emails}}
-// 4. Copy your Public Key from Account → API Keys
-// 5. Replace the three values below:
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
-const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-
-// Initialize EmailJS
-emailjs.init(EMAILJS_PUBLIC_KEY);
+// FormSubmit endpoint
+const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${MARKETING_EMAIL}`;
 
 // ===== Property Subtype Options =====
 const subtypeOptions = {
@@ -637,19 +623,34 @@ form.addEventListener('submit', (e) => {
     if (input.value.trim()) ccEmails.push(input.value.trim());
   });
 
-  // Send via EmailJS
-  const templateParams = {
-    subject: buildEmailSubject(),
-    to_email: MARKETING_EMAIL,
-    cc_emails: ccEmails.join(','),
+  // Build FormSubmit payload
+  const payload = {
+    _subject: buildEmailSubject(),
+    _cc: ccEmails.join(','),
+    _template: 'box',
+    _captcha: 'false',
     message: buildEmailBody(),
   };
 
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+  // Send via FormSubmit AJAX
+  fetch(FORMSUBMIT_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
     .then(() => {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit to Marketing';
       const modal = document.getElementById('successModal');
+      modal.querySelector('.modal-icon').textContent = '\u2713';
+      modal.querySelector('.modal-icon').style.background = '#059669';
       modal.querySelector('h3').textContent = 'Form Submitted Successfully';
       modal.querySelector('p').textContent =
         'Your marketing request has been sent. The marketing team and all listed brokers will receive a copy.';
@@ -673,7 +674,7 @@ form.addEventListener('submit', (e) => {
       modal.querySelector('p').textContent =
         'There was an error sending your request. Please try again or contact the marketing team directly.';
       modal.style.display = 'flex';
-      console.error('EmailJS error:', error);
+      console.error('FormSubmit error:', error);
     });
 });
 
