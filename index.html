@@ -46,6 +46,7 @@
           <div id="brokerContainer">
             <div class="broker-row">
               <input type="text" class="form-input broker-input" name="brokerPrimary" placeholder="Primary Broker Name" required>
+              <input type="email" class="form-input broker-email" name="brokerPrimaryEmail" placeholder="Primary Broker Email" required>
               <span class="broker-badge primary-badge">Primary</span>
             </div>
           </div>
@@ -518,6 +519,19 @@
         </div>
       </section>
 
+      <!-- Section 8: Priority -->
+      <section class="form-section">
+        <h2 class="section-title">Priority <span class="required-indicator">*</span></h2>
+        <div class="form-group">
+          <select class="form-input form-select" id="priority" name="priority" required>
+            <option value="">Select Priority</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+      </section>
+
       <!-- Submit -->
       <div class="form-actions">
         <button type="submit" class="btn-submit" id="submitBtn">Submit to Marketing</button>
@@ -538,5 +552,8 @@
   </div>
 
   <script src="script.js"></script>
+  <!-- Google Places API: Replace YOUR_API_KEY with your actual Google API key -->
+  <!-- Enable "Places API" and "Maps JavaScript API" in Google Cloud Console -->
+  <script async src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initAutocomplete"></script>
 </body>
 </html>

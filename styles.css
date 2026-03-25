@@ -252,6 +252,7 @@ body {
 
 .broker-row .form-input {
   flex: 1;
+  min-width: 0;
 }
 
 .broker-badge {

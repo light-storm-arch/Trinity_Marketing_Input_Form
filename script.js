@@ -130,6 +130,7 @@ addBrokerBtn.addEventListener('click', () => {
   row.className = 'broker-row';
   row.innerHTML = `
     <input type="text" class="form-input broker-input" name="broker_${brokerCount}" placeholder="Broker Name">
+    <input type="email" class="form-input broker-email" name="brokerEmail_${brokerCount}" placeholder="Broker Email" required>
     <span class="broker-badge additional-badge">Additional</span>
     <button type="button" class="btn-remove-broker" title="Remove broker">&times;</button>
   `;
@@ -247,6 +248,16 @@ function validateForm() {
     valid = false;
     errors.push('Primary Broker is required');
   }
+
+  // Broker emails
+  const brokerEmails = brokerContainer.querySelectorAll('.broker-email');
+  brokerEmails.forEach((input) => {
+    if (!input.value.trim() || !input.validity.valid) {
+      input.classList.add('error');
+      valid = false;
+      errors.push('A valid email is required for each broker');
+    }
+  });
 
   requiredFields.forEach(({ id, label }) => {
     const el = document.getElementById(id);
@@ -379,6 +390,14 @@ function validateForm() {
     });
   }
 
+  // Priority
+  const priorityEl = document.getElementById('priority');
+  if (!priorityEl.value) {
+    priorityEl.classList.add('error');
+    valid = false;
+    errors.push('Priority is required');
+  }
+
   // Scroll to first error
   if (!valid) {
     const firstError = document.querySelector('.form-input.error, .validation-msg.show');
@@ -414,10 +433,14 @@ function buildEmailBody() {
   lines.push(sep);
 
   // Brokers
-  const brokerInputs = brokerContainer.querySelectorAll('.broker-input, input[name^="broker_"]');
-  brokerInputs.forEach((input, i) => {
-    if (input.value.trim()) {
-      lines.push(`Broker ${i + 1}: ${input.value.trim()}${i === 0 ? ' (Primary)' : ''}`);
+  const brokerRows = brokerContainer.querySelectorAll('.broker-row');
+  brokerRows.forEach((row, i) => {
+    const nameInput = row.querySelector('.broker-input');
+    const emailInput = row.querySelector('.broker-email');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim() : '';
+    if (name) {
+      lines.push(`Broker ${i + 1}: ${name}${i === 0 ? ' (Primary)' : ''} — ${email}`);
     }
   });
 
@@ -556,7 +579,13 @@ function buildEmailBody() {
     lines.push('E-BLAST');
     lines.push(sep);
     lines.push(eblast);
+    lines.push('');
   }
+
+  // Priority
+  lines.push('PRIORITY');
+  lines.push(sep);
+  lines.push(val('priority'));
 
   return lines.join('\n');
 }
@@ -580,14 +609,22 @@ form.addEventListener('submit', (e) => {
   const subject = encodeURIComponent(buildEmailSubject());
   const body = encodeURIComponent(buildEmailBody());
 
+  // Collect broker emails for CC
+  const brokerEmailInputs = brokerContainer.querySelectorAll('.broker-email');
+  const ccEmails = [];
+  brokerEmailInputs.forEach((input) => {
+    if (input.value.trim()) ccEmails.push(input.value.trim());
+  });
+  const ccParam = ccEmails.length > 0 ? `&cc=${encodeURIComponent(ccEmails.join(','))}` : '';
+
   // Use mailto link to open the user's email client
-  const mailtoLink = `mailto:${MARKETING_EMAIL}?subject=${subject}&body=${body}`;
+  const mailtoLink = `mailto:${MARKETING_EMAIL}?subject=${subject}${ccParam}&body=${body}`;
 
   // Check if mailto body is too long (some email clients have limits around 2000 chars in URL)
   // If so, copy to clipboard and show modal with instructions
   if (mailtoLink.length > 2000) {
     // Try to open mailto with just subject, copy body to clipboard
-    const shortMailto = `mailto:${MARKETING_EMAIL}?subject=${subject}`;
+    const shortMailto = `mailto:${MARKETING_EMAIL}?subject=${subject}${ccParam}`;
 
     // Copy body to clipboard
     const emailBody = buildEmailBody();
