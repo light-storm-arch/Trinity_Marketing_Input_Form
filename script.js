@@ -414,185 +414,149 @@ function validateForm() {
   return valid;
 }
 
-// ===== Build Email Body =====
-function buildEmailBody() {
-  const lines = [];
-  const sep = '─'.repeat(40);
+// ===== Build Email Fields =====
+// Each entry becomes its own labeled row in the Web3Forms email, in order.
+// Section entries act as dividers; blank optional fields are left out.
+function buildEmailFields() {
+  const fields = {};
   const val = (id) => document.getElementById(id)?.value?.trim() || '';
   const radio = (name) => {
     const checked = document.querySelector(`input[name="${name}"]:checked`);
     return checked ? checked.value : '';
   };
+  const section = (title) => { fields[`■ ${title}`] = '────────────────────'; };
+  const add = (label, value) => { if (value) fields[label] = value; };
+  const withUnit = (value, unit) => (value ? `${value} ${unit}` : '');
 
   // Listing Type
   const types = [];
   if (forSaleCheck.checked) types.push('For Sale');
   if (forLeaseCheck.checked) types.push('For Lease');
-  lines.push('LISTING TYPE');
-  lines.push(sep);
-  lines.push(types.join(' | '));
-  lines.push('');
+  section('LISTING TYPE');
+  add('Listing Type', types.join(' | '));
 
   // Basic Info
-  lines.push('BASIC INFORMATION');
-  lines.push(sep);
-
-  // Brokers
+  section('BASIC INFORMATION');
   const brokerRows = brokerContainer.querySelectorAll('.broker-row');
   brokerRows.forEach((row, i) => {
-    const nameInput = row.querySelector('.broker-input');
-    const emailInput = row.querySelector('.broker-email');
-    const name = nameInput ? nameInput.value.trim() : '';
-    const email = emailInput ? emailInput.value.trim() : '';
+    const name = row.querySelector('.broker-input')?.value.trim() || '';
+    const email = row.querySelector('.broker-email')?.value.trim() || '';
     if (name) {
-      lines.push(`Broker ${i + 1}: ${name}${i === 0 ? ' (Primary)' : ''} — ${email}`);
+      add(i === 0 ? 'Primary Broker' : `Broker ${i + 1}`, email ? `${name} — ${email}` : name);
     }
   });
-
-  lines.push(`Address: ${val('streetAddress')}`);
-  lines.push(`City: ${val('city')}, ${val('state')} ${val('zipCode')}`);
-  lines.push(`County: ${val('county')}`);
-  if (val('submarket')) lines.push(`Submarket: ${val('submarket')}`);
-  lines.push(`Location Description: ${val('locationDescription')}`);
-  lines.push(`Property Highlights: ${val('propertyHighlights')}`);
-  lines.push('');
+  add('Street Address', val('streetAddress'));
+  add('City / State / Zip', `${val('city')}, ${val('state')} ${val('zipCode')}`);
+  add('County', val('county'));
+  add('Submarket', val('submarket'));
+  add('Location Description', val('locationDescription'));
+  add('Property Highlights', val('propertyHighlights'));
 
   // Property Info
-  lines.push('PROPERTY INFORMATION');
-  lines.push(sep);
+  section('PROPERTY INFORMATION');
   const type = val('propertyType');
-  lines.push(`Property Type: ${type}`);
+  add('Property Type', type);
   if (type === 'Land') {
-    lines.push(`Land Use: ${val('landUse')}`);
+    add('Land Use', val('landUse'));
   } else if (val('propertySubtype')) {
-    const sub = val('propertySubtype') === 'Other' ? val('otherSubtype') : val('propertySubtype');
-    lines.push(`Subtype: ${sub}`);
+    add('Subtype', val('propertySubtype') === 'Other' ? val('otherSubtype') : val('propertySubtype'));
   }
-  if (val('propertyName')) lines.push(`Property Name: ${val('propertyName')}`);
-  lines.push(`Zoning: ${val('zoning')}`);
-  lines.push(`Zoning Jurisdiction: ${val('zoningJurisdiction')}`);
-  lines.push(`Lot Size: ${val('lotSize')} AC`);
-  if (val('tmsNumber')) lines.push(`TMS#: ${val('tmsNumber')}`);
-  lines.push('');
+  add('Property Name', val('propertyName'));
+  add('Zoning', val('zoning'));
+  add('Zoning Jurisdiction', val('zoningJurisdiction'));
+  add('Lot Size', withUnit(val('lotSize'), 'AC'));
+  add('TMS#', val('tmsNumber'));
 
   // Building Info (if not land)
   if (type !== 'Land') {
-    lines.push('BUILDING INFORMATION');
-    lines.push(sep);
-    lines.push(`Building Size: ${val('buildingSize')} SF`);
-    if (val('buildingClass')) lines.push(`Building Class: ${val('buildingClass')}`);
-    if (val('occupancyRate')) lines.push(`Occupancy Rate: ${val('occupancyRate')}`);
-    if (val('tenancy')) lines.push(`Tenancy: ${val('tenancy')}`);
-    if (val('numberOfFloors')) lines.push(`Number of Floors: ${val('numberOfFloors')}`);
-    if (val('yearBuilt')) lines.push(`Year Built: ${val('yearBuilt')}`);
-    if (val('yearRenovated')) lines.push(`Year Last Renovated: ${val('yearRenovated')}`);
-    if (val('frontage')) lines.push(`Frontage: ${val('frontage')} ft`);
-    if (val('frontageStreet')) lines.push(`Frontage Street: ${val('frontageStreet')}`);
-    if (val('vehiclesPerDay')) lines.push(`Vehicles per Day: ${val('vehiclesPerDay')}`);
+    section('BUILDING INFORMATION');
+    add('Building Size', withUnit(val('buildingSize'), 'SF'));
+    add('Building Class', val('buildingClass'));
+    add('Occupancy Rate', val('occupancyRate'));
+    add('Tenancy', val('tenancy'));
+    add('Number of Floors', val('numberOfFloors'));
+    add('Year Built', val('yearBuilt'));
+    add('Year Last Renovated', val('yearRenovated'));
+    add('Frontage', withUnit(val('frontage'), 'ft'));
+    add('Frontage Street', val('frontageStreet'));
+    add('Vehicles per Day', val('vehiclesPerDay'));
 
     // Asset-class specific
     if (type === 'Office') {
-      lines.push('');
-      lines.push('  Office Details:');
-      if (val('numOffices')) lines.push(`  # of Offices: ${val('numOffices')}`);
-      if (val('numBathrooms')) lines.push(`  # of Bathrooms: ${val('numBathrooms')}`);
-      if (val('numBreakrooms')) lines.push(`  # of Breakrooms: ${val('numBreakrooms')}`);
-      if (radio('sharedEntry')) lines.push(`  Shared Entry: ${radio('sharedEntry')}`);
-      if (radio('sharedAmenities')) lines.push(`  Shared Amenities: ${radio('sharedAmenities')}`);
-      if (val('numWorkstations')) lines.push(`  # of Work Stations: ${val('numWorkstations')}`);
-      if (val('parkingRatio')) lines.push(`  Parking Ratio: ${val('parkingRatio')}`);
-      const layout = val('layoutStyle') === 'Other' ? val('otherLayout') : val('layoutStyle');
-      if (layout) lines.push(`  Layout Style: ${layout}`);
+      section('OFFICE DETAILS');
+      add('# of Offices', val('numOffices'));
+      add('# of Bathrooms', val('numBathrooms'));
+      add('# of Breakrooms', val('numBreakrooms'));
+      add('Shared Entry', radio('sharedEntry'));
+      add('Shared Amenities', radio('sharedAmenities'));
+      add('# of Work Stations', val('numWorkstations'));
+      add('Parking Ratio', val('parkingRatio'));
+      add('Layout Style', val('layoutStyle') === 'Other' ? val('otherLayout') : val('layoutStyle'));
     }
 
     if (type === 'Industrial') {
-      lines.push('');
-      lines.push('  Industrial Details:');
-      if (val('officeSpace')) lines.push(`  Office Space: ${val('officeSpace')} SF`);
-      if (val('utilities')) lines.push(`  Utilities: ${val('utilities')}`);
-      if (val('numDockDoors')) lines.push(`  # of Dock Doors: ${val('numDockDoors')}`);
-      if (val('dockDoorDescription')) lines.push(`  Dock Door Description: ${val('dockDoorDescription')}`);
-      if (val('numDriveInDoors')) lines.push(`  # of Drive-In Doors: ${val('numDriveInDoors')}`);
-      if (val('minClearHeight')) lines.push(`  Min. Clear Height: ${val('minClearHeight')}`);
-      if (val('maxClearHeight')) lines.push(`  Max. Clear Height: ${val('maxClearHeight')}`);
-      if (val('floorThickness')) lines.push(`  Floor Thickness: ${val('floorThickness')}`);
+      section('INDUSTRIAL DETAILS');
+      add('Office Space', withUnit(val('officeSpace'), 'SF'));
+      add('Utilities', val('utilities'));
+      add('# of Dock Doors', val('numDockDoors'));
+      add('Dock Door Description', val('dockDoorDescription'));
+      add('# of Drive-In Doors', val('numDriveInDoors'));
+      add('Min. Clear Height', val('minClearHeight'));
+      add('Max. Clear Height', val('maxClearHeight'));
+      add('Floor Thickness', val('floorThickness'));
     }
 
     if (type === 'Retail') {
-      lines.push('');
-      lines.push('  Retail Details:');
-      if (val('currentUse')) lines.push(`  Current Use: ${val('currentUse')}`);
-      if (val('potentialUses')) lines.push(`  Potential Uses: ${val('potentialUses')}`);
-      if (val('numParkingSpaces')) lines.push(`  # of Parking Spaces: ${val('numParkingSpaces')}`);
-      if (val('spaceCondition')) lines.push(`  Space Condition: ${val('spaceCondition')}`);
+      section('RETAIL DETAILS');
+      add('Current Use', val('currentUse'));
+      add('Potential Uses', val('potentialUses'));
+      add('# of Parking Spaces', val('numParkingSpaces'));
+      add('Space Condition', val('spaceCondition'));
     }
-
-    lines.push('');
   }
 
   // Sale Info
   if (forSaleCheck.checked) {
-    lines.push('SALE INFORMATION');
-    lines.push(sep);
-    lines.push(`Sale Description: ${val('saleDescription')}`);
-    lines.push(`Price: ${val('salePrice')}`);
-    if (val('noi')) lines.push(`NOI: ${val('noi')}`);
-    if (val('capRate')) lines.push(`Cap Rate: ${val('capRate')}`);
-    lines.push('');
+    section('SALE INFORMATION');
+    add('Sale Description', val('saleDescription'));
+    add('Price', val('salePrice'));
+    add('NOI', val('noi'));
+    add('Cap Rate', val('capRate'));
   }
 
   // Lease Info
   if (forLeaseCheck.checked) {
-    lines.push('LEASE INFORMATION');
-    lines.push(sep);
-    if (document.getElementById('subleaseCheck').checked) {
-      lines.push('** SUBLEASE **');
-    }
-    lines.push(`Lease Description: ${val('leaseDescription')}`);
-    lines.push(`Lease Rate: ${val('leaseRate')}`);
-    if (radio('rateBasis')) lines.push(`Rate Basis: ${radio('rateBasis')}`);
-    const lt = val('leaseType') === 'Other' ? val('otherLeaseType') : val('leaseType');
-    lines.push(`Lease Type: ${lt}`);
-    lines.push(`# of Spaces Available: ${val('numSpacesAvailable')}`);
+    section('LEASE INFORMATION');
+    if (document.getElementById('subleaseCheck').checked) add('Sublease', 'Yes');
+    add('Lease Description', val('leaseDescription'));
+    add('Lease Rate', val('leaseRate'));
+    add('Rate Basis', radio('rateBasis'));
+    add('Lease Type', val('leaseType') === 'Other' ? val('otherLeaseType') : val('leaseType'));
+    add('# of Spaces Available', val('numSpacesAvailable'));
 
-    // Suites
+    // Suites — one row per suite
     const suiteCards = suiteContainer.querySelectorAll('.suite-card');
-    if (suiteCards.length > 0) {
-      lines.push('');
-      lines.push('  Available Suites:');
-      suiteCards.forEach((card, i) => {
-        const getName = (prefix) => {
-          const input = card.querySelector(`[name^="${prefix}"]`);
-          return input ? input.value.trim() : '';
-        };
-        lines.push(`  --- Suite ${i + 1} ---`);
-        lines.push(`  Name: ${getName('suiteName')}`);
-        lines.push(`  Size: ${getName('suiteSize')} SF`);
-        if (getName('suiteFloor')) lines.push(`  Floor: ${getName('suiteFloor')}`);
-        lines.push(`  Rate: ${getName('suiteRate')}`);
-        lines.push(`  Lease Type: ${getName('suiteLeaseType')}`);
-        if (getName('suiteMinDivisible')) lines.push(`  Min. Divisible: ${getName('suiteMinDivisible')} SF`);
-        if (getName('suiteMaxContiguous')) lines.push(`  Max. Contiguous: ${getName('suiteMaxContiguous')} SF`);
-      });
-    }
-    lines.push('');
+    suiteCards.forEach((card, i) => {
+      const get = (prefix) => card.querySelector(`[name^="${prefix}"]`)?.value.trim() || '';
+      const parts = [
+        get('suiteName'),
+        withUnit(get('suiteSize'), 'SF'),
+        get('suiteFloor') && `Floor ${get('suiteFloor')}`,
+        get('suiteRate'),
+        get('suiteLeaseType'),
+        get('suiteMinDivisible') && `Min. Divisible ${get('suiteMinDivisible')} SF`,
+        get('suiteMaxContiguous') && `Max. Contiguous ${get('suiteMaxContiguous')} SF`,
+      ].filter(Boolean);
+      add(`Suite ${i + 1}`, parts.join(' · '));
+    });
   }
 
-  // E-Blast
-  const eblast = radio('eblast');
-  if (eblast) {
-    lines.push('E-BLAST');
-    lines.push(sep);
-    lines.push(eblast);
-    lines.push('');
-  }
+  // E-Blast & Priority
+  section('E-BLAST & PRIORITY');
+  add('E-Blast', radio('eblast'));
+  add('Priority', val('priority'));
 
-  // Priority
-  lines.push('PRIORITY');
-  lines.push(sep);
-  lines.push(val('priority'));
-
-  return lines.join('\n');
+  return fields;
 }
 
 // ===== Build Email Subject =====
@@ -625,7 +589,7 @@ form.addEventListener('submit', (e) => {
     subject: buildEmailSubject(),
     from_name: 'Trinity Marketing Input Form',
     replyto: primaryBrokerEmail,
-    message: buildEmailBody(),
+    ...buildEmailFields(),
   };
 
   // Send via Web3Forms
