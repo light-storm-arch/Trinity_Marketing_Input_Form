@@ -580,8 +580,13 @@ form.addEventListener('submit', (e) => {
   submitBtn.textContent = 'Sending...';
 
   // Primary broker email becomes the Reply-To so marketing can reply directly.
-  // (CC is a paid Web3Forms feature; all broker emails are listed in the body.)
   const primaryBrokerEmail = brokerContainer.querySelector('.broker-email')?.value.trim() || '';
+
+  // CC every listed broker (Web3Forms Pro; multiple addresses are semicolon-separated)
+  const ccEmails = [];
+  brokerContainer.querySelectorAll('.broker-email').forEach((input) => {
+    if (input.value.trim()) ccEmails.push(input.value.trim());
+  });
 
   // Build Web3Forms payload
   const payload = {
@@ -589,6 +594,7 @@ form.addEventListener('submit', (e) => {
     subject: buildEmailSubject(),
     from_name: 'Trinity Marketing Input Form',
     replyto: primaryBrokerEmail,
+    ccemail: ccEmails.join('; '),
     ...buildEmailFields(),
   };
 
@@ -617,7 +623,7 @@ form.addEventListener('submit', (e) => {
       modal.querySelector('.modal-icon').style.background = '#059669';
       modal.querySelector('h3').textContent = 'Form Submitted Successfully';
       modal.querySelector('p').textContent =
-        'Your marketing request has been sent to the marketing team.';
+        'Your marketing request has been sent. The marketing team and all listed brokers will receive a copy.';
       modal.style.display = 'flex';
       form.reset();
       // Hide conditional sections after reset
