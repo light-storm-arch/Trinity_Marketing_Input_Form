@@ -1,12 +1,11 @@
 // ===== Configuration =====
-// Marketing recipient email — FormSubmit delivers to this address.
-// After your first submission, FormSubmit will send a confirmation email.
-// Once confirmed, you can replace the email below with the alias hash
-// they provide to keep the address hidden from the page source.
-const MARKETING_EMAIL = 'e298bb80442144a8f3a2542b6844c51e';
+// Web3Forms access key — submissions are delivered to the marketing email
+// registered with this key. The key is safe to expose in page source; it can
+// only send to that registered address.
+const WEB3FORMS_ACCESS_KEY = '7558e56e-71f7-47e8-af0f-3e7da062edd1';
 
-// FormSubmit endpoint
-const FORMSUBMIT_URL = `https://formsubmit.co/ajax/${MARKETING_EMAIL}`;
+// Web3Forms endpoint
+const WEB3FORMS_URL = 'https://api.web3forms.com/submit';
 
 // ===== Property Subtype Options =====
 const subtypeOptions = {
@@ -616,24 +615,21 @@ form.addEventListener('submit', (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Sending...';
 
-  // Collect broker emails for CC
-  const brokerEmailInputs = brokerContainer.querySelectorAll('.broker-email');
-  const ccEmails = [];
-  brokerEmailInputs.forEach((input) => {
-    if (input.value.trim()) ccEmails.push(input.value.trim());
-  });
+  // Primary broker email becomes the Reply-To so marketing can reply directly.
+  // (CC is a paid Web3Forms feature; all broker emails are listed in the body.)
+  const primaryBrokerEmail = brokerContainer.querySelector('.broker-email')?.value.trim() || '';
 
-  // Build FormSubmit payload
+  // Build Web3Forms payload
   const payload = {
-    _subject: buildEmailSubject(),
-    _cc: ccEmails.join(','),
-    _template: 'box',
-    _captcha: 'false',
+    access_key: WEB3FORMS_ACCESS_KEY,
+    subject: buildEmailSubject(),
+    from_name: 'Trinity Marketing Input Form',
+    replyto: primaryBrokerEmail,
     message: buildEmailBody(),
   };
 
-  // Send via FormSubmit AJAX
-  fetch(FORMSUBMIT_URL, {
+  // Send via Web3Forms
+  fetch(WEB3FORMS_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -641,10 +637,14 @@ form.addEventListener('submit', (e) => {
     },
     body: JSON.stringify(payload),
   })
-    .then((response) => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.json();
-    })
+    .then((response) => response.json().then((data) => {
+      // Web3Forms reports failures via `success: false`, so check it
+      // rather than trusting the HTTP status alone.
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `HTTP ${response.status}`);
+      }
+      return data;
+    }))
     .then(() => {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Submit to Marketing';
@@ -653,7 +653,7 @@ form.addEventListener('submit', (e) => {
       modal.querySelector('.modal-icon').style.background = '#059669';
       modal.querySelector('h3').textContent = 'Form Submitted Successfully';
       modal.querySelector('p').textContent =
-        'Your marketing request has been sent. The marketing team and all listed brokers will receive a copy.';
+        'Your marketing request has been sent to the marketing team.';
       modal.style.display = 'flex';
       form.reset();
       // Hide conditional sections after reset
@@ -674,7 +674,7 @@ form.addEventListener('submit', (e) => {
       modal.querySelector('p').textContent =
         'There was an error sending your request. Please try again or contact the marketing team directly.';
       modal.style.display = 'flex';
-      console.error('FormSubmit error:', error);
+      console.error('Web3Forms error:', error);
     });
 });
 
